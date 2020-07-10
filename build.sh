@@ -12,30 +12,29 @@ if [[ "$2" != refs/heads/* ]]; then
 	exit 1
 fi
 
+. ./config.sh
+
 HASH="$1"
 BRANCH=${2:11}
+PORT=$(./get-port.sh "$BRANCH")
 
-echo "$HASH" "$BRANCH"
-
-LOCK_FILE="${REPO_LOCK}/${BRANCH}"
+LOCK_FILE="${DIR}/lock/repo-${BRANCH}"
 
 exec 200>"$LOCK_FILE"
 flock -x -n 200 || exit
 
-cd "$REPO_LOCAL" || exit
+REPO="${DIR}/repo/${BRANCH}"
 
-if [ ! -d "$BRANCH" ]; then
-	git clone  --single-branch --branch "$BRANCH" "$REPO_URL" "$BRANCH"
+if [ ! -d "$REPO" ]; then
+	git clone --depth 1 --single-branch --branch "$BRANCH" "$URL" "$REPO"
 	HASH="new"
 fi
 
-cd "$BRANCH" || exit 1
-
-echo "$HEAD" "$HASH"
+cd "$REPO" || exit 1
 
 HEAD=$(git rev-parse HEAD)
 if [ "$HEAD" == "$HASH" ]; then
-	>&2 echo no change, skip
+	>&2 echo "[ $BRANCH ] no change, skip"
 	exit
 fi
 
@@ -44,3 +43,5 @@ if [ "$HASH" != "new" ]; then
 	git clean -df
 	git pull --rebase
 fi
+
+echo "$BRANCH" "$PORT" "$REPO"
