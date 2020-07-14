@@ -17,7 +17,7 @@ fi
 HASH="$1"
 BRANCH=${2:11}
 BRANCH_DIR="${BRANCH/\//\-}"
-PORT=$(./get-port.sh "$BRANCH_DIR")
+PORT=$(./get-port.sh "$BRANCH")
 
 LOCK_FILE="${DIR}/lock/repo-${BRANCH_DIR}"
 
@@ -31,6 +31,13 @@ if [ ! -d "$REPO" ]; then
 fi
 cd "$REPO" || exit 1
 
+echo "$BRANCH" "$PORT" "$REPO"
+
+SERVER_BIN="./script/game-server.sh"
+if [ -x "./script/init.sh" ]; then
+	"$SERVER_BIN" "$PORT"
+fi
+
 HEAD=$(git rev-parse HEAD)
 if [ "$HEAD" == "$HASH" ]; then
 	>&2 echo "[ $BRANCH ] no change, skip"
@@ -43,4 +50,7 @@ if [ "$HASH" != "new" ]; then
 	git pull --rebase
 fi
 
-echo "$BRANCH" "$PORT" "$REPO"
+SERVER_BIN="./script/game-server.sh"
+if [ -x "$SERVER_BIN" ]; then
+	"$SERVER_BIN" "$PORT"
+fi

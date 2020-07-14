@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+PORT_STEP=20
+
 DIR="$(dirname "$(readlink -f "$0")")" && cd "$DIR" || exit 1
 
 BRANCH="${1/\//-}"
@@ -16,7 +18,7 @@ LOCK_FILE="${DIR}/lock/port"
 FILE="br-${BRANCH}"
 PORT=$(cat "$FILE" 2>/dev/null || :)
 if [ -n "$PORT" ]; then
-	echo "$PORT"
+	echo "$PORT" | cut -d' ' -f1
 	exit
 fi
 
@@ -32,7 +34,7 @@ if [ "$LAST_PORT" -lt 10000 ]; then
 fi
 
 while true; do
-	((LAST_PORT+=10))
+	((LAST_PORT+=PORT_STEP))
 	FOUND=$(grep "$LAST_PORT" --include="branch-*" ./* 2>/dev/null || :)
 	if [ -z "$FOUND" ]; then
 		PORT="$LAST_PORT"
@@ -40,5 +42,6 @@ while true; do
 	fi
 done
 
+echo "$PORT"
 echo "$LAST_PORT" > "$LAST_FILE"
-echo "$PORT" | tee "$FILE"
+echo "$PORT $1" > "$FILE"
