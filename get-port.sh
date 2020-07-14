@@ -2,7 +2,8 @@
 
 DIR="$(dirname "$(readlink -f "$0")")" && cd "$DIR" || exit 1
 
-BRANCH="$1"
+BRANCH="${1/\//-}"
+
 if [ -z "$BRANCH" ]; then
 	>&2 echo no branch input
 	exit 1

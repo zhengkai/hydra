@@ -16,20 +16,19 @@ fi
 
 HASH="$1"
 BRANCH=${2:11}
-PORT=$(./get-port.sh "$BRANCH")
+BRANCH_DIR="${BRANCH/\//\-}"
+PORT=$(./get-port.sh "$BRANCH_DIR")
 
-LOCK_FILE="${DIR}/lock/repo-${BRANCH}"
+LOCK_FILE="${DIR}/lock/repo-${BRANCH_DIR}"
 
 exec 200>"$LOCK_FILE"
 flock -x -n 200 || exit
 
-REPO="${DIR}/repo/${BRANCH}"
-
+REPO="${DIR}/repo/${BRANCH_DIR}"
 if [ ! -d "$REPO" ]; then
 	git clone --depth 1 --single-branch --branch "$BRANCH" "$URL" "$REPO"
 	HASH="new"
 fi
-
 cd "$REPO" || exit 1
 
 HEAD=$(git rev-parse HEAD)
